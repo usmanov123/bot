@@ -1,0 +1,69 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+
+TOKEN = '8001473439:AAEzgkSKlL7bygry_r2J3NULIcSleSYnrHg'  # <-- вставь сюда свой токен
+YOUR_TELEGRAM_LINK = 'https://t.me/youngsir'  # <-- сюда ссылку на себя (@username)
+
+# Приветственное сообщение с HTML-ссылками
+welcome_text = (
+    "Привет! 😊\n\n"
+    "🤖 Я бот канала <b>Ars & Apple</b>.\n\n"
+    "🍀 Пока я могу принимать оплату только по <b>СБП</b> либо через "
+    "<a href='https://www.avito.ru/user/7e210ef08b39271281a10abf5d15b44d/profile?src=sharing'>Авито</a>.\n\n"
+    "🆕 Не забудьте подписаться, чтобы быть в курсе новостей:\n"
+    "<a href='https://youtube.com/@arstechlab?si=IgWxe6vYbZAbkGyy'>YouTube</a> 📱 | "
+    "<a href='https://t.me/ArsAndApple'>Telegram</a> ✔️"
+)
+
+# Главное меню
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("📱 iPhone 16", callback_data='iphone')],
+        [InlineKeyboardButton("💻 iPad AIR/PRO", callback_data='ipad')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.effective_chat.send_message(
+        welcome_text,
+        parse_mode="HTML",
+        reply_markup=reply_markup,
+        disable_web_page_preview=True
+    )
+
+# Обработка нажатий на кнопки
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'iphone':
+        await query.edit_message_text(
+            "Вы выбрали: 📱 iPhone 16\n\niPhone 16 128GB Pink Sim-eSim – 61.000₽\n\niPhone 16 128GB White Sim-eSim – 62.000₽\n\nЧтобы подтвердить заказ, напишите мне: " + YOUR_TELEGRAM_LINK,
+            reply_markup=back_markup()
+        )
+
+    elif query.data == 'ipad':
+        await query.edit_message_text(
+            "Вы выбрали: 💻 iPad\n\nЧтобы подтвердить заказ, напишите мне: " + YOUR_TELEGRAM_LINK,
+            reply_markup=back_markup()
+        )
+
+    elif query.data == 'back':
+        await start(update, context)
+
+# Кнопка "Назад"
+def back_markup():
+    keyboard = [[InlineKeyboardButton("🔙 Назад", callback_data='back')]]
+    return InlineKeyboardMarkup(keyboard)
+
+# Запуск бота
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_button))
+
+    print("Бот запущен...")
+    app.run_polling()
+
+if __name__ == '__main__':
+    main()
